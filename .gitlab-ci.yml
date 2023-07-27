@@ -1,0 +1,14 @@
+---
+
+include:
+  - project: nofusscomputing/projects/gitlab-ci
+    ref: development
+    file:
+      - .gitlab-ci_common.yaml
+      - template/automagic.gitlab-ci.yaml
+
+
+variables:
+    MY_PROJECT_ID: "48046854"
+    GIT_SYNC_URL: "https://$GITHUB_USERNAME_ROBOT:$GITHUB_TOKEN_ROBOT@github.com/NoFussComputing/ansible_role_glpi.git"
+
