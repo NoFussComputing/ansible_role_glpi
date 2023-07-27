@@ -1,0 +1,150 @@
+---
+- name: GPLI Docker Container
+  ansible.builtin.include_role:
+    name: docker_management
+  vars:
+    docker_images:
+      - name: "{{ docker_image_name_glpi }}"
+        tag: "{{ docker_image_tag_glpi }}"
+
+    docker_networks:
+      - name: "{{ docker_container_name_glpi }}-access"
+        internal: false # this needs to be added to the docker role
+      - name: "{{ docker_container_name_glpi }}-smtp-access"
+        internal: true
+
+    docker_containers:
+      - name: "{{ docker_container_name_glpi }}"
+        image: "{{ docker_image_name_glpi }}:{{ docker_image_tag_glpi }}"
+        env:
+          TIMEZONE: UTC
+        networks:
+          - name: "{{ docker_container_name_glpi }}-access"
+          - name: "ingress-access"
+          - name: "{{ docker_container_name_glpi }}-smtp-access"
+          - name: ldap-access
+          - name: mysql-access
+        # published_ports:
+        #   - 80:80
+        volumes:
+          - /usr/share/zoneinfo/Etc/UTC:/etc/timezone:ro
+          - /usr/share/zoneinfo/Etc/UTC:/etc/localtime:ro
+          - "config_{{ docker_container_name_glpi }}:/var/www/html/config"
+          - "data_{{ docker_container_name_glpi }}:/var/www/html/files"
+          - "log_{{ docker_container_name_glpi }}:/var/log"
+          - "marketplace_{{ docker_container_name_glpi }}:/var/www/html/marketplace"
+          - "plugins_{{ docker_container_name_glpi }}:/var/www/html/plugins"
+
+    docker_volumes:
+      - name: "plugins_{{ docker_container_name_glpi }}"
+      - name: "data_{{ docker_container_name_glpi }}"
+      - name: "config_{{ docker_container_name_glpi }}"
+      - name: "marketplace_{{ docker_container_name_glpi }}"
+      - name: "log_{{ docker_container_name_glpi }}"
+      - name: "varlog_{{ docker_container_name_glpi }}"
+
+
+- name: Create GLPI database
+  community.mysql.mysql_db:
+    name: "{{ mysql_database_glpi }}"
+    state: present
+    login_unix_socket: "{{ mysql_unix_socket }}"
+    login_user: "{{ mysql_login_user }}"
+    login_password: "{{ mysql_login_password }}"
+    login_host: "{{ mysql_login_host | default('') }}"
+    config_file: ''
+
+
+- name: Create user with password, all database privileges and 'WITH GRANT OPTION' in db1 and db2
+  community.mysql.mysql_user:
+    state: "{{ item.state | default('present') }}"
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    host: "{{ item.host | default('localhost') }}"
+    priv: "{{ item.priv | default(omit) | from_yaml }}"
+    update_password: "{{ item.update_password | default('on_create') }}"
+    login_host: "{{ mysql_login_host | default('') }}"
+    login_unix_socket: "{{ mysql_unix_socket }}"
+    login_user: "{{ mysql_login_user }}"
+    login_password: "{{ mysql_login_password }}"
+    config_file: ''
+  loop: "{{ database_mysql_users }}"
+  vars:
+    database_mysql_users:
+      - name: glpi
+        password: admin
+        host: '%'
+        priv:
+          'glpi.*': 'ALL,GRANT'
+
+# sudo cp -r /var/www/html/glpi/config/* /var/lib/docker/volumes/glpi_config_glpi/_data/
+# sudo cp -r /var/www/html/glpi/files/* /var/lib/docker/volumes/glpi_data_glpi/_data/
+# sudo cp -r /var/www/html/glpi/plugins/* /var/lib/docker/volumes/glpi_glpi_plugins/_data/
+# sudo cp -r /var/www/html/glpi/marketplace/* /var/lib/docker/volumes/glpi_marketplace_glpi/_data/
+
+
+# sudo chmod -R 777 /var/lib/docker/volumes/glpi_config_glpi/_data/
+# sudo chmod -R 777 /var/lib/docker/volumes/glpi_data_glpi/_data/
+# sudo chmod -R 777 /var/lib/docker/volumes/glpi_glpi_plugins/_data/
+# sudo chmod -R 777 /var/lib/docker/volumes/glpi_marketplace_glpi/_data/
+
+- name: Add fail2ban filters
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: '760'
+    owner: root
+    group: root
+  loop: "{{ the_files }}"
+  # notify: reload_fail2ban
+  when: >
+    install_fail2ban | default(false) | bool
+  vars:
+    the_files:
+      - src: fail2ban.filter.conf
+        dest: "/etc/fail2ban/filter.d/glpi.local"
+      - src: fail2ban.filter.conf
+        dest: "/etc/fail2ban/filter.d/glpi-api.local"
+      
+
+- name: "Fail2Ban Jail for GLPI"
+  ansible.builtin.include_role:
+    name: nfc_firewall
+  when: >
+    install_fail2ban | default(false) | bool
+  vars:
+    fail2ban:
+      config:
+        - name: "glpi-{{ docker_container_name_glpi }}"
+          sub_path: jail.d
+          sections:
+            DEFAULT:
+              "glpi_log": "/var/lib/docker/volumes/data_{{ docker_container_name_glpi }}/_data/_log/event.log"
+            glpi:
+              enabled: true
+              mode: polling
+              chain: DOCKER-USER
+              port: http,https
+              logpath: "%(glpi_log)s"
+              filter: glpi
+              findtime: 600
+              maxretry: 5
+        - name: "api_glpi-{{ docker_container_name_glpi }}"
+          sub_path: jail.d
+          sections:
+            DEFAULT:
+              "api_glpi_log": "/var/lib/docker/volumes/log_{{ docker_container_name_glpi }}/_data/apache2/access-glpi.log"
+            api_glpi:
+              enabled: true
+              mode: polling
+              chain: DOCKER-USER
+              port: http,https
+              logpath: "%(api_glpi_log)s"
+              filter: glpi-api
+              findtime: 600
+              maxretry: 5
+
+
+- name: Task Final playbook variables
+  ansible.builtin.set_fact:
+    glpi_installed: true

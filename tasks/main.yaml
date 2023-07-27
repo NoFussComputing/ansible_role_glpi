@@ -1,0 +1,33 @@
+---
+- name: Install GLPI
+  ansible.builtin.include_tasks:
+    file: install.yaml
+    apply:
+      tags:
+        - always
+  tags:
+    - always
+  when: >
+    install_glpi | bool
+      and
+    not glpi_installed | bool
+
+
+
+- name: Configure Log Rotate
+  ansible.builtin.include_tasks:
+    file: configure.yaml
+    apply:
+      tags:
+        - always
+  tags:
+    - always
+  when: glpi_installed | bool
+#       and
+#     ansible_os_family == "Debian"
+#       and
+#     (
+#       logrotate is defined
+#         and
+#       logrotate | default([]) | length | int > 0
+#     )
