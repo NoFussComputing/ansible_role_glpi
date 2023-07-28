@@ -37,4 +37,4 @@
     apply:
       tags:
         - always
-  when: glpi_config_as_code_json length | int > 0
+  when: glpi_config_as_code_json | length | int > 0
