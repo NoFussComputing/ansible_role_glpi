@@ -1,0 +1,77 @@
+---
+
+- name: Create item_body
+  ansible.builtin.set_fact:
+    item_body: "{{ item.body }}"
+  no_log: true
+
+
+- name: Search item_id
+  ansible.builtin.include_tasks:
+    file: api/search/item_id.yaml
+  when: not item.body.id is defined
+
+
+- name: Search entities_id
+  ansible.builtin.include_tasks:
+    file: api/search/entities_id.yaml
+  when: item.entities_id is defined
+
+
+- name: Search tickettemplates_id_demand
+  ansible.builtin.include_tasks:
+    file: api/search/tickettemplates_id_demand.yaml
+  when: item.tickettemplates_id_demand is defined
+
+
+- name: Search itilcategories_id
+  ansible.builtin.include_tasks:
+    file: api/search/itilcategories_id.yaml
+  when: item.itilcategories_id is defined
+
+
+- name: Search users_id
+  ansible.builtin.include_tasks:
+    file: api/search/users_id.yaml
+  when: item.users_id is defined
+
+
+- name: Show Body
+  ansible.builtin.debug:
+    msg: "{{ item_body }}"
+  when: item_body is defined
+
+
+- name: Create Item
+  ansible.builtin.uri:
+    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}"
+    method: "POST"
+    return_content: true
+    body: "{\"input\": {{ item_body | from_yaml | to_json }} }"
+    status_code: [200, 201]
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Session-Token: "{{ glpi.session.valid_id }}"
+    body_format: json
+  no_log: true
+  when: not item_body.id is defined
+
+
+- name: Update Item
+  ansible.builtin.uri:
+    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}/{{ item_body.id }}"
+    method: "PATCH"
+    return_content: true
+    body: "{\"input\": {{ item_body | from_yaml | to_json }} }"
+    status_code: [200, 201]
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Session-Token: "{{ glpi.session.valid_id }}"
+    body_format: json
+  no_log: true
+  when: item_body.id is defined
+
+
+- name: Clear temp vars
+  ansible.builtin.set_fact:
+    item_body: {}

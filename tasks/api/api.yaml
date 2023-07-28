@@ -9,6 +9,12 @@
       when: glpi.api.session | default('') == ''
 
 
+    - name: Append/Create Item
+      ansible.builtin.include_tasks:
+        file: append-create-item.yaml
+      loop: "{{ glpi_config_as_code_json }}"
+
+
   always:
 
 

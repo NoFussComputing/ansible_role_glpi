@@ -23,6 +23,8 @@ nav:
 
       - projects/nfc_glpi/index.md
 
+      - projects/nfc_glpi/config_from_code.md
+
 - Operations: 
 
   - operations/index.md

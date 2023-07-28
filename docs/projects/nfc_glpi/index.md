@@ -1,5 +1,5 @@
 ---
-title: Ansible Role nfc_glpi
+title: nfc_glpi - Ansible Role
 description: How to use No Fuss Computings Ansible role to manage GLPI from configuration as code.
 date: 2023-07-28
 template: project.html
@@ -13,6 +13,7 @@ This Ansible role is designed to manage GLPI specifically installation and confi
 
 - install GLPI using our [docker container](https://gitlab.com/nofusscomputing/projects/docker-glpi)
 
+- [Configure using Config from Code](config_from_code.md)
 
 ## Default Variables
 
