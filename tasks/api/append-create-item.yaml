@@ -1,39 +1,10 @@
 ---
 
-- name: Create item_body
-  ansible.builtin.set_fact:
-    item_body: "{{ item.body }}"
-  no_log: true
-
-
 - name: Search item_id
   ansible.builtin.include_tasks:
     file: api/search/item_id.yaml
-  when: not item.body.id is defined
-
-
-- name: Search entities_id
-  ansible.builtin.include_tasks:
-    file: api/search/entities_id.yaml
-  when: item.entities_id is defined
-
-
-- name: Search tickettemplates_id_demand
-  ansible.builtin.include_tasks:
-    file: api/search/tickettemplates_id_demand.yaml
-  when: item.tickettemplates_id_demand is defined
-
-
-- name: Search itilcategories_id
-  ansible.builtin.include_tasks:
-    file: api/search/itilcategories_id.yaml
-  when: item.itilcategories_id is defined
-
-
-- name: Search users_id
-  ansible.builtin.include_tasks:
-    file: api/search/users_id.yaml
-  when: item.users_id is defined
+  when: >
+    not item.body.id is defined
 
 
 - name: Show Body
@@ -59,7 +30,7 @@
 
 - name: Update Item
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}/{{ item_body.id }}"
+    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}{% if item.api_path != 'Config' %}/{{ item_body.id }}{% endif %}"
     method: "PATCH"
     return_content: true
     body: "{\"input\": {{ item_body | from_yaml | to_json }} }"
