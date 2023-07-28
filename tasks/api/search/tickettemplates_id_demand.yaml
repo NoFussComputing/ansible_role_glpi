@@ -1,0 +1,31 @@
+---
+- name: Fetch tickettemplates_id_demand
+  ansible.builtin.uri:
+    url: "http://{{ glpi.host }}/apirest.php/TicketTemplate?searchText[name]={{ item.tickettemplates_id_demand | urlencode }}"
+    method: "GET"
+    return_content: true
+    body: ''
+    # status_code: "{{ item.status_code | from_yaml | list }}"
+    status_code: [200, 201]
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Session-Token: "{{ glpi.session.valid_id }}"
+    body_format: json
+  register: glpi_search
+  no_log: true
+
+
+- name: Set tickettemplates_id_demand
+  ansible.builtin.set_fact:
+    new_data:
+      tickettemplates_id_demand: "{{ glpi_search.json[0].id | int }}"
+  when: glpi_search.json | length | int == 1
+
+
+- name: Append tickettemplates_id_demand
+  ansible.builtin.set_fact:
+    item_body: "{{ item_body | ansible.builtin.combine(new_data) }}"
+    glpi_search: {}
+    new_data: {}
+  no_log: true
+  when: glpi_search.json | length | int == 1
