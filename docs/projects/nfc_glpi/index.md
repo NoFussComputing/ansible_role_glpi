@@ -15,11 +15,10 @@ This Ansible role is designed to manage GLPI specifically installation and confi
 
 - [Configure using Config from Code](config_from_code.md)
 
+
 ## Default Variables
 
-Here's an example playbook that demonstrates how to use the `docker_management` role:
-
-```yaml title="defaults/main.yaml" linenums="1
+``` yaml title="defaults/main.yaml" linenums="1"
 
 --8<-- "defaults/main.yaml"
 

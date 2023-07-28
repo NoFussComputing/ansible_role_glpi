@@ -16,17 +16,21 @@ Each tab provides an example of the JSON file layout, including any additional v
 
 === "AuthLDAP"
 
-    ``` json title="example.json" linenums="1
+    ``` json title="example.json" linenums="1"
+
     {
       "api_path": "AuthLDAP",
       "body": {
         // JSON from API Query
       }
     }
+
     ```
+
 === "Entity"
 
-    ``` json title="example.json" linenums="1
+    ``` json title="example.json" linenums="1"
+
     {
       "api_path": "Entity",
       "entities_id": "",
@@ -34,11 +38,13 @@ Each tab provides an example of the JSON file layout, including any additional v
         // JSON from API Query
       }
     }
+
     ```
 
 === "ITILCategory"
 
-    ``` json title="example.json" linenums="1
+    ``` json title="example.json" linenums="1"
+
     {
       "api_path": "ITILCategory",
       "users_id": "",
@@ -49,24 +55,29 @@ Each tab provides an example of the JSON file layout, including any additional v
         // JSON from API Query
       }
     }
+
     ```
 
 === "Profile"
 
-    ``` json title="example.json" linenums="1
+    ``` json title="example.json" linenums="1"
+
     {
       "api_path": "Profile",
       "body": {
         // JSON from API Query
       }
     }
+
     ```
+
 
 With the config files structured as per the examples, within your playbook(s), load the json files in a list of json objects using variable `glpi_config_as_code_json`
 
 example
 
-``` yaml title="my_vars.yaml" linenums="1
+``` yaml title="my_vars.yaml" linenums="1"
+
 glpi_config_as_code_json:
   - "{{ lookup('file', '/workdir/files/glpi/ITILCategory-new-ldap-user.json') | from_json }}"
   - "{{ lookup('file', '/workdir/files/glpi/LDAPAuth-local_ldap.json') | from_json }}"
