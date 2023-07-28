@@ -13,7 +13,6 @@
     not glpi_installed | bool
 
 
-
 - name: Configure Log Rotate
   ansible.builtin.include_tasks:
     file: configure.yaml
@@ -31,3 +30,11 @@
 #         and
 #       logrotate | default([]) | length | int > 0
 #     )
+
+- name: API tasks
+  ansible.builtin.include_tasks:
+    file: api/api.yaml
+    apply:
+      tags:
+        - always
+  when: glpi_config_as_code_json length | int > 0

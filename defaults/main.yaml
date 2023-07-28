@@ -44,3 +44,7 @@ mysql_database_glpi: glpi
 #       mode: 640                                    # Mandatory, filemode
 #       owner: root                                  # Mandatory, logfile owner
 #       group: adm                                   # Mandatory, logfile group owner
+
+
+
+glpi_config_as_code_json: []
