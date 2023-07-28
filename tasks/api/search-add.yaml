@@ -1,0 +1,47 @@
+---
+
+- name: Create item_body
+  ansible.builtin.set_fact:
+    item_body: "{{ item.body }}"
+  no_log: true
+
+
+- name: Append/Create Item
+  ansible.builtin.include_tasks:
+    file: api/append-create-item.yaml
+  when: not item.api_path == 'Config'
+
+
+- name: Config Items to skip
+  ansible.builtin.set_fact:
+    skip_config:
+      - cas_version
+      - dbversion
+      - _dbslave_status
+      - schema_version
+      - version
+  when: item.api_path == 'Config'
+
+
+- name: Config
+  ansible.builtin.include_tasks:
+    file: api/config.yaml
+  when: >
+    item.api_path == 'Config'
+      and
+    not sub_item.name in skip_config
+  loop: "{{ item_body }}"
+  loop_control:
+    loop_var: sub_item
+  vars:
+    list_item:
+      api_path: "{{ item.api_path }}"
+      body:
+        context: "{{ sub_item.context }}"
+        name: "{{ sub_item.name }}"
+        value: "{{ sub_item.value | default('') }}"
+
+
+- name: Clear temp vars
+  ansible.builtin.set_fact:
+    item_body: {}
