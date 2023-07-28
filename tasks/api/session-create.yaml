@@ -1,0 +1,29 @@
+---
+- name: Fetch API Session Token
+  ansible.builtin.uri:
+    url: "http://{{ glpi.host }}/apirest.php/initSession?get_full_session=true"
+    method: GET
+    return_content: true
+    body: ""
+    status_code: 200
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Authorization: "user_token {{ glpi.user_token }}"
+    body_format: json
+  register: glpi_session_get
+  no_log: true
+  tags:
+    - always
+
+
+- name: Session Data
+  ansible.builtin.set_fact:
+    glpi_session:
+      session: "{{ glpi_session_get.json.session }}"
+  no_log: true
+
+
+- name: Session fact
+  ansible.builtin.set_fact:
+    glpi: "{{ glpi | ansible.builtin.combine(glpi_session) }}"
+  no_log: true
