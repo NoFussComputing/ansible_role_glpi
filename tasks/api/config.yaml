@@ -1,16 +1,11 @@
 ---
 
-- name: Show {{ list_item.body.name }}
-  ansible.builtin.debug:
-    msg: "{{ list_item }}"
-
 - name: Fetch ID for {{ list_item.body.name }}
   ansible.builtin.uri:
     url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}?searchText[name]={{ list_item.body.name | urlencode }}"
     method: "GET"
     return_content: true
     body: ''
-    # status_code: "{{ item.status_code | from_yaml | list }}"
     status_code: [200, 201]
     headers:
       App-Token: "{{ glpi.app_token }}"

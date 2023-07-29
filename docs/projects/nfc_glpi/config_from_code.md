@@ -45,6 +45,15 @@ Each tab provides an example of the JSON file layout, including any additional v
     !!! info
         The structure of this JSON file is different than the rest. The body is a **list** of **ALL** of the Config options. This includes the item ID. it was done this way, so that only one API query is required to export all config options.
 
+    !!! info "Further Information"
+        Any config item that does not contain a value field, is excluded from being added or updated. In addition, the following items by name, are excluded
+
+        ``` yaml title="tasks/api/excluded_config.yaml" linenums="1"
+
+        --8<-- "tasks/api/excluded_config.yaml"
+
+        ```
+
 === "Entity"
 
     ``` json title="example.json" linenums="1"

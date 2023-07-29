@@ -1,0 +1,16 @@
+---
+
+- name: Config Items to skip
+  ansible.builtin.set_fact:
+    skip_config:
+      - cas_version
+      - dbversion
+      - _dbslave_status
+      - init_all
+      - notification_uuid
+      - proxy_passwd
+      - registration_uuid
+      - schema_version
+      - smtp_passwd
+      - version
+  when: item.api_path == 'Config'

@@ -13,14 +13,8 @@
 
 
 - name: Config Items to skip
-  ansible.builtin.set_fact:
-    skip_config:
-      - cas_version
-      - dbversion
-      - _dbslave_status
-      - schema_version
-      - version
-  when: item.api_path == 'Config'
+  ansible.builtin.import_tasks:
+    file: api/excluded_config.yaml
 
 
 - name: Config
@@ -30,6 +24,8 @@
     item.api_path == 'Config'
       and
     not sub_item.name in skip_config
+      and
+    sub_item.value is defined
   loop: "{{ item_body }}"
   loop_control:
     loop_var: sub_item
@@ -39,7 +35,7 @@
       body:
         context: "{{ sub_item.context }}"
         name: "{{ sub_item.name }}"
-        value: "{{ sub_item.value | default('') }}"
+        value: "{{ sub_item.value }}"
 
 
 - name: Clear temp vars
