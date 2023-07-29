@@ -98,6 +98,41 @@ Each tab provides an example of the JSON file layout, including any additional v
 
     ```
 
+=== "TicketTemplate"
+
+    This config file covers all parts of a ticket template. with this template you can create and update an existing ticket template.
+
+    !!! warning
+        Assosiated Items do not get updated or removed. They will be added if they don't exist. No checks are done for more assosiated items then are specified in the template.
+
+    ``` json title="example.json" linenums="1"
+
+    {
+      "api_path": "TicketTemplate",
+      "entities_id": "",
+      "body": {
+        // JSON from API Query
+      },
+      "_TicketTemplateMandatoryField": [
+
+        // JSON from API Query path TicketTemplate/{ticket_template_id}/TicketTemplateMandatoryField
+      ],
+      "_TicketTemplatePredefinedField": [
+
+        // JSON from API Query path TicketTemplate/{ticket_template_id}/TicketTemplatePredefinedField
+
+      ],
+      "_TicketTemplateHiddenField": [
+
+        // JSON from API Query path TicketTemplate/{ticket_template_id}/TicketTemplateHiddenField
+
+      ]
+    }
+
+    ```
+
+    Sub-items to the ticket are `TicketTemplateMandatoryField`, `TicketTemplatePredefinedField` and `TicketTemplateHiddenField` and are at json path `._{sub-item}`. These items are a **list of dicts** and can contain the `id` of the item, however it is ignored as the update is base off of `tickettemplates_id`, `num` for all and `tickettemplates_id`, `num` and `value` for `num=13` which is an assosiated item. With the exception of the latter, all of these values will be updated if they exist.
+
 
 With the config files structured as per the examples, within your playbook(s), load the json files in a list of json objects using variable `glpi_config_as_code_json`
 

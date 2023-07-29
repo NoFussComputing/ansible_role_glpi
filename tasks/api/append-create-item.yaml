@@ -1,10 +1,48 @@
 ---
 
+- name: Show item
+  ansible.builtin.debug:
+    msg: "{{ item }}"
+
+- name: Create item_body
+  ansible.builtin.set_fact:
+    item_body: "{{ item.body }}"
+  no_log: true
+
 - name: Search item_id
   ansible.builtin.include_tasks:
     file: api/search/item_id.yaml
-  when: >
-    not item.body.id is defined
+  when: not item.body.id is defined
+
+
+- name: Search entities_id
+  ansible.builtin.include_tasks:
+    file: api/search/entities_id.yaml
+  when: item.entities_id is defined
+
+
+- name: Search itilcategories_id
+  ansible.builtin.include_tasks:
+    file: api/search/itilcategories_id.yaml
+  when: item.itilcategories_id is defined
+
+
+- name: Search tickettemplates_id_demand
+  ansible.builtin.include_tasks:
+    file: api/search/itickettemplates_id_demand.yaml
+  when: item.tickettemplates_id_demand is defined
+
+
+- name: Search tickettemplates_id
+  ansible.builtin.include_tasks:
+    file: api/search/tickettemplates_id.yaml
+  when: item.tickettemplates_id is defined
+
+
+- name: Search users_id
+  ansible.builtin.include_tasks:
+    file: api/search/users_id.yaml
+  when: item.users_id is defined
 
 
 - name: Show Body
@@ -15,7 +53,7 @@
 
 - name: Create Item
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}"
+    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}{% if item.sub_path is defined %}/{{ item.sub_path }}{% endif %}"
     method: "POST"
     return_content: true
     body: "{\"input\": {{ item_body | from_yaml | to_json }} }"
@@ -25,12 +63,14 @@
       Session-Token: "{{ glpi.session.valid_id }}"
     body_format: json
   no_log: true
-  when: not item_body.id is defined
+  register: create_item
+  when: >
+    not item_body.id is defined
 
 
 - name: Update Item
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}{% if item.api_path != 'Config' %}/{{ item_body.id }}{% endif %}"
+    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}{% if item.sub_path is defined %}/{{ item.sub_path }}{% else %}{% if item.api_path != 'Config' %}/{{ item_body.id | default('') }}{% endif %}{% endif %}"
     method: "PATCH"
     return_content: true
     body: "{\"input\": {{ item_body | from_yaml | to_json }} }"
@@ -40,9 +80,21 @@
       Session-Token: "{{ glpi.session.valid_id }}"
     body_format: json
   no_log: true
+  register: update_item
   when: item_body.id is defined
+
+
+- name: Fail on no action
+  ansible.builtin.fail:
+    msg: No action carried out, stop.
+  when: >
+    update_item.skipped | default(false) | bool
+      and
+    create_item.skipped | default(false) | bool
 
 
 - name: Clear temp vars
   ansible.builtin.set_fact:
     item_body: {}
+    create_item: {}
+    update_item: {}
