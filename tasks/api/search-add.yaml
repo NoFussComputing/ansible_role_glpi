@@ -17,16 +17,14 @@
     file: api/excluded_config.yaml
 
 
-- name: Config
+- name: Add/Update GLPI Config
   ansible.builtin.include_tasks:
     file: api/config.yaml
   when: >
-    item.api_path == 'Config'
-      and
     not sub_item.name in skip_config
       and
     sub_item.value is defined
-  loop: "{{ item_body }}"
+  loop: "{% if item.api_path == 'Config' %}{{ item_body }}{% else %}{{ [] }}{% endif %}"
   loop_control:
     loop_var: sub_item
   vars:
