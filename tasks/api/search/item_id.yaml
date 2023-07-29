@@ -1,7 +1,7 @@
 ---
 - name: Find Item ID
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}?searchText[name]={{ item.body.name | urlencode }}"
+    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}{% if item.sub_path is defined %}/{{ item.sub_path }}{% endif%}{% if search_items | length | int > 0%}?{% for search in search_items %}searchText[{{ search.name }}]={{ search.value | urlencode }}&{% endfor %}{% else%}?searchText[name]={{ item.body.name | urlencode }}{% endif %}"
     method: "GET"
     return_content: true
     body: ''
@@ -22,10 +22,102 @@
   when: glpi_search.json | length | int == 1
 
 
+- name: Iterate over results for TicketTemplateMandatoryField id/TicketTemplateHiddenField
+  ansible.builtin.shell:
+    cmd: |
+      cat <<EOF
+      {
+        {%- for json in glpi_search.json -%}
+
+          {%- if
+            json.tickettemplates_id | int == item_body.tickettemplates_id | int
+              and
+            json.num | int == item_body.num | int
+          -%}
+          "id": {{ json.id | int }}
+          {%- endif -%}
+
+        {%- endfor -%}
+      }
+      EOF
+  args:
+    executable: bash
+  register: itarate_id
+  changed_when: false
+  when: >
+    glpi_search.json | length | int > 1
+      and
+    (
+      'TicketTemplateMandatoryField' in item.sub_path | default('')
+        or
+      'TicketTemplateHiddenField' in item.sub_path | default('')
+    )
+
+
+- name: Set iterate id
+  ansible.builtin.set_fact:
+    new_data: "{{ itarate_id.stdout | from_yaml }}"
+  when: itarate_id.stdout is defined
+
+
+- name: Iterate over results for TicketTemplatePredefinedField id
+  ansible.builtin.shell:
+    cmd: |
+      cat <<EOF
+      {
+        {%- for json in glpi_search.json -%}
+
+          {%- if
+            json.num | int == 13
+              and
+            json.tickettemplates_id | int == item_body.tickettemplates_id | int
+              and
+            json.num | int == item_body.num | int
+              and
+            json.value == item_body.value
+          -%}
+
+            "id": {{ json.id | int }}
+
+
+          {%- elif
+            json.num | int != 13
+              and
+            json.tickettemplates_id | int == item_body.tickettemplates_id | int
+              and
+            json.num | int == item_body.num | int
+          -%}
+            "id": {{ json.id | int }}
+
+          {%- endif -%}
+
+        {%- endfor -%}
+      }
+      EOF
+  args:
+    executable: bash
+  register: itarate_id
+  changed_when: false
+  when: >
+    glpi_search.json | length | int > 1
+      and
+    'TicketTemplatePredefinedField' in item.sub_path | default('')
+
+
+- name: Set iterate id
+  ansible.builtin.set_fact:
+    new_data: "{{ itarate_id.stdout | from_yaml }}"
+  when: itarate_id.stdout is defined
+
+
 - name: Append id
   ansible.builtin.set_fact:
     item_body: "{{ item_body | ansible.builtin.combine(new_data) }}"
+  no_log: true
+  when: new_data | default({}) | length | int > 0
+
+- name: Item_id fact Cleanup
+  ansible.builtin.set_fact:
     glpi_search: {}
     new_data: {}
   no_log: true
-  when: glpi_search.json | length | int == 1

@@ -48,3 +48,4 @@ mysql_database_glpi: glpi
 
 
 glpi_config_as_code_json: []
+search_items: []

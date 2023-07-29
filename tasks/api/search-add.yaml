@@ -1,15 +1,18 @@
 ---
 
-- name: Create item_body
-  ansible.builtin.set_fact:
-    item_body: "{{ item.body }}"
-  no_log: true
+- name: Ticket Template
+  ansible.builtin.include_tasks:
+    file: api/ticket_template.yaml
+  when: item.api_path == 'TicketTemplate'
 
 
 - name: Append/Create Item
   ansible.builtin.include_tasks:
     file: api/append-create-item.yaml
-  when: not item.api_path == 'Config'
+  when: >
+    not item.api_path == 'Config'
+      and
+    not item.api_path == 'TicketTemplate'
 
 
 - name: Config Items to skip
