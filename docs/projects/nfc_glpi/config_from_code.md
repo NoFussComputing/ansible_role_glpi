@@ -9,9 +9,29 @@ about: https://gitlab.com/nofusscomputing/projects/ansible/nfc_glpi
 To configure GLPI using this role, the config/settings are saved as json files. The workflow to create the json files, is to (preferably within a test environment) make the required setting changes in GLPI using the GUI. one the changes have been made, conduct an API `GET` query to GLPI for the item you changed. The JSON body that is returned, is placed within the Config file (detailed below) under path `.body`. You must however, remove any fields that are not required, for example dynamic fields (fields that update themselves or are auto created) for example date fields. it's also recommended to remove the items `id` entry from the body, this option enables the updating and creation of the item by the name field.
 
 
+!!! warning
+    To utilise the config from json files, it's important that any configurable item from json files, that it's name is unique for that item type within GLPI. This is due to the feature "find item_id by name" i.e. you can't have two items named `my name` and `my name` of type `x`, even if in different entities. 
+
+
 ## Config files Example
 
-Each tab provides an example of the JSON file layout, including any additional variables. Any variable listed at path `.` that are empty strings, you would complete with the items name as it is exactly within GLPI. These fields are used to fetch the item_id of the field by name. This enables having the config saved in a more human readable format. For example, for the field `entities_id` you would complete it as `"entities_id": "My entity name"`.
+Each tab provides an example of the JSON file layout, including any additional variables. Variable listed at path `.`, with the exception of `api_path`, `body` or have asuffix of `_` are provided to use that items name. These fields are used to fetch the item_id of the field by name. available fields are:
+
+- entities_id
+
+- item_id
+
+- itilcategories_id
+
+- tickettemplates_id_demand
+
+- tickettemplates_id
+
+- users_id
+
+
+For example, to have an item placed in the entity `NoFussComputing` provided value would be `"entities_id": "NoFussComputing"`. As part of the item workflow a search for an entity named `NoFussComputing` is conducted, and if found, adds it's `entity_id` to path `.body.entities_id: {entity_id}`.
+
 
 !!! tip
     If you leave the item ID in the config file under path `.body.id`, the item that matches this ID, will be updated, not the item matching the name.

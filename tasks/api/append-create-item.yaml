@@ -9,40 +9,10 @@
     item_body: "{{ item.body }}"
   no_log: true
 
-- name: Search item_id
+
+- name: Search for item IDs
   ansible.builtin.include_tasks:
-    file: api/search/item_id.yaml
-  when: not item.body.id is defined
-
-
-- name: Search entities_id
-  ansible.builtin.include_tasks:
-    file: api/search/entities_id.yaml
-  when: item.entities_id is defined
-
-
-- name: Search itilcategories_id
-  ansible.builtin.include_tasks:
-    file: api/search/itilcategories_id.yaml
-  when: item.itilcategories_id is defined
-
-
-- name: Search tickettemplates_id_demand
-  ansible.builtin.include_tasks:
-    file: api/search/itickettemplates_id_demand.yaml
-  when: item.tickettemplates_id_demand is defined
-
-
-- name: Search tickettemplates_id
-  ansible.builtin.include_tasks:
-    file: api/search/tickettemplates_id.yaml
-  when: item.tickettemplates_id is defined
-
-
-- name: Search users_id
-  ansible.builtin.include_tasks:
-    file: api/search/users_id.yaml
-  when: item.users_id is defined
+    file: api/search.yaml
 
 
 - name: Show Body
