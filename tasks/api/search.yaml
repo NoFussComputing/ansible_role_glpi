@@ -26,7 +26,7 @@
 
 - name: Search tickettemplates_id_demand
   ansible.builtin.include_tasks:
-    file: api/search/itickettemplates_id_demand.yaml
+    file: api/search/tickettemplates_id_demand.yaml
   when: item.tickettemplates_id_demand is defined
 
 
