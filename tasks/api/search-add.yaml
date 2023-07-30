@@ -42,3 +42,4 @@
 - name: Clear temp vars
   ansible.builtin.set_fact:
     item_body: {}
+  no_log: true

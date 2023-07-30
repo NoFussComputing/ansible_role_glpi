@@ -44,6 +44,7 @@
     executable: bash
   register: itarate_id
   changed_when: false
+  no_log: true
   when: >
     glpi_search.json | length | int > 1
       and
@@ -98,6 +99,7 @@
     executable: bash
   register: itarate_id
   changed_when: false
+  no_log: true
   when: >
     glpi_search.json | length | int > 1
       and

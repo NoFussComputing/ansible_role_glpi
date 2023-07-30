@@ -98,3 +98,4 @@
     item_body: {}
     create_item: {}
     update_item: {}
+  no_log: true
