@@ -1,0 +1,32 @@
+---
+
+- name: Fetch users_id
+  ansible.builtin.uri:
+    url: "http://{{ glpi.host }}/apirest.php/Group?searchText[name]={{ item.groups_id | urlencode }}"
+    method: "GET"
+    return_content: true
+    body: ''
+    status_code: [200, 201]
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Session-Token: "{{ glpi.session.valid_id }}"
+    body_format: json
+  register: glpi_search
+  no_log: true
+
+
+- name: Set groups_id
+  ansible.builtin.set_fact:
+    new_data:
+      groups_id: "{{ glpi_search.json[0].id | int }}"
+  when: glpi_search.json | length | int == 1
+
+
+- name: Append groups (have item_body)
+  ansible.builtin.set_fact:
+    item_body: "{{ item_body | ansible.builtin.combine(new_data) }}"
+    glpi_search: {}
+    new_data: {}
+  no_log: true
+  when: glpi_search.json | length | int == 1
+

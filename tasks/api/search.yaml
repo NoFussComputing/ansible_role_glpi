@@ -12,6 +12,12 @@
   when: item.entities_id is defined
 
 
+- name: Search groups_id
+  ansible.builtin.include_tasks:
+    file: api/search/groups_id.yaml
+  when: item.groups_id is defined
+
+
 - name: Search itilcategories_id
   ansible.builtin.include_tasks:
     file: api/search/itilcategories_id.yaml

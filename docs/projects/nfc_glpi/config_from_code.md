@@ -19,6 +19,8 @@ Each tab provides an example of the JSON file layout, including any additional v
 
 - entities_id
 
+- groups_id
+
 - item_id
 
 - itilcategories_id
