@@ -16,17 +16,39 @@
   no_log: true
 
 
+- name: Iterate over results for ID search
+  ansible.builtin.shell:
+    cmd: |
+      cat <<EOF
+      {
+        {%- for json in glpi_search.json -%}
+
+          {%- if json.name | string  == item.users_id | string -%}
+          "users_id": {{ json.id | int }}
+          {%- endif -%}
+
+        {%- endfor -%}
+      }
+      EOF
+  args:
+    executable: bash
+  register: itarate_id
+  changed_when: false
+  no_log: true
+  when: >
+    glpi_search.json | length | int > 0
+
+
 - name: Set users_id
   ansible.builtin.set_fact:
-    new_data:
-      users_id: "{{ glpi_search.json[0].id | int }}"
-  when: glpi_search.json | length | int == 1
+    new_data: "{{ itarate_id.stdout | from_yaml }}"
+  when: itarate_id.stdout | default({}) | length | int > 0
 
 
 - name: Append users_id (have item_body)
   ansible.builtin.set_fact:
-    item_body: "{{ item_body | ansible.builtin.combine(new_data) }}"
+    item_body: "{{ item_body | ansible.builtin.combine(new_data | default({})) }}"
     glpi_search: {}
+    itarate_id: {}
     new_data: {}
   no_log: true
-  when: glpi_search.json | length | int == 1

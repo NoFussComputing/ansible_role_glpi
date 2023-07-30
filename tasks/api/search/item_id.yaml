@@ -112,14 +112,10 @@
   when: itarate_id.stdout is defined
 
 
-- name: Append id
-  ansible.builtin.set_fact:
-    item_body: "{{ item_body | ansible.builtin.combine(new_data) }}"
-  no_log: true
-  when: new_data | default({}) | length | int > 0
-
 - name: Item_id fact Cleanup
   ansible.builtin.set_fact:
+    item_body: "{{ item_body | ansible.builtin.combine(new_data | default({})) }}"
     glpi_search: {}
+    itarate_id: {}
     new_data: {}
   no_log: true
