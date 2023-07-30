@@ -46,6 +46,7 @@
 - name: Append tickettemplates_id
   ansible.builtin.set_fact:
     item_body: "{{ item_body | ansible.builtin.combine(new_data | default({})) }}"
+    tickettemplates_id: "{{ new_data.tickettemplates_id | default(omit) | int }}"
     glpi_search: {}
     itarate_id: {}
     new_data: {}
