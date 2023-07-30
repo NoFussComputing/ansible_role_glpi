@@ -27,7 +27,7 @@
     not sub_item.name in skip_config
       and
     sub_item.value is defined
-  loop: "{% if item.api_path == 'Config' %}{{ item_body }}{% else %}{{ [] }}{% endif %}"
+  loop: "{% if item.api_path == 'Config' %}{{ item.body }}{% else %}{{ [] }}{% endif %}"
   loop_control:
     loop_var: sub_item
   vars:
