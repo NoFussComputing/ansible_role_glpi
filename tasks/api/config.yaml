@@ -40,6 +40,18 @@
   no_log: true
 
 
+- name: Remove Empty ID from body
+  ansible.builtin.set_fact:
+    config_item:
+      api_path: "{{ list_item.api_path }}"
+      body:
+        context: "{{ list_item.body.context }}"
+        name: "{{ list_item.body.name }}"
+        value: "{{ list_item.body.value }}"
+  when: config_item.body.id | default('0') == ''
+  no_log: true
+
+
 - name: "Item [{{ config_item.body.id + ']: ' + config_item.body.name }}"
   ansible.builtin.debug:
     msg: "{{ config_item }}"
