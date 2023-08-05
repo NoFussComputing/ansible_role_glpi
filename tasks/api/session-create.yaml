@@ -10,6 +10,7 @@
       App-Token: "{{ glpi.app_token }}"
       Authorization: "user_token {{ glpi.user_token }}"
     body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
   register: glpi_session_get
   no_log: true
   tags:

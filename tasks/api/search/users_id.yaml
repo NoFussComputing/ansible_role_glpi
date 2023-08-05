@@ -12,6 +12,7 @@
       App-Token: "{{ glpi.app_token }}"
       Session-Token: "{{ glpi.session.valid_id }}"
     body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
   register: glpi_search
   no_log: true
 

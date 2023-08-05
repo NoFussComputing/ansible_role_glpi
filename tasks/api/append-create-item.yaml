@@ -32,6 +32,7 @@
       App-Token: "{{ glpi.app_token }}"
       Session-Token: "{{ glpi.session.valid_id }}"
     body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
   no_log: true
   register: create_item
   when: >
@@ -49,6 +50,7 @@
       App-Token: "{{ glpi.app_token }}"
       Session-Token: "{{ glpi.session.valid_id }}"
     body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
   no_log: true
   register: update_item
   when: item_body.id is defined
