@@ -1,7 +1,7 @@
 ---
 - name: Fetch entities_id
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/Entity?searchText[name]={{ item.entities_id | urlencode }}"
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/Entity?searchText[name]={{ item.entities_id | urlencode }}"
     method: "GET"
     return_content: true
     body: ''
@@ -11,6 +11,7 @@
       App-Token: "{{ glpi.app_token }}"
       Session-Token: "{{ glpi.session.valid_id }}"
     body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
   register: glpi_search
   no_log: true
 

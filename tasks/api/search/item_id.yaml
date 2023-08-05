@@ -1,7 +1,7 @@
 ---
 - name: Find Item ID
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}{% if item.sub_path is defined %}/{{ item.sub_path }}{% endif%}{% if search_items | length | int > 0%}?{% for search in search_items %}searchText[{{ search.name }}]={{ search.value | urlencode }}&{% endfor %}{% else%}?searchText[name]={{ item.body.name | urlencode }}{% endif %}"
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/{{ item.api_path }}{% if item.sub_path is defined %}/{{ item.sub_path }}{% endif%}{% if search_items | length | int > 0%}?{% for search in search_items %}searchText[{{ search.name }}]={{ search.value | urlencode }}&{% endfor %}{% else%}?searchText[name]={{ item.body.name | urlencode }}{% endif %}"
     method: "GET"
     return_content: true
     body: ''

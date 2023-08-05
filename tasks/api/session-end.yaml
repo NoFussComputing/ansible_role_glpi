@@ -1,7 +1,7 @@
 ---
 - name: End API Session
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/killSession"
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/killSession"
     method: GET
     return_content: true
     body: ''

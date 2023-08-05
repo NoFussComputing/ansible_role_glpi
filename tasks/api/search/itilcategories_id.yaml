@@ -1,7 +1,7 @@
 ---
 - name: Fetch itilcategories_id
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/ITILCategory?searchText[name]={{ item.itilcategories_id | urlencode }}"
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/ITILCategory?searchText[name]={{ item.itilcategories_id | urlencode }}"
     method: "GET"
     return_content: true
     body: ''

@@ -2,7 +2,7 @@
 
 - name: Fetch ID for {{ list_item.body.name }}
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}?searchText[name]={{ list_item.body.name | urlencode }}"
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/{{ item.api_path }}?searchText[name]={{ list_item.body.name | urlencode }}"
     method: "GET"
     return_content: true
     body: ''
@@ -77,7 +77,7 @@
 
 - name: Update Config Item
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/{{ item.api_path }}/{{ config_item.body.id }}"
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/{{ item.api_path }}/{{ config_item.body.id }}"
     method: "PATCH"
     return_content: true
     body: "{\"input\": {{ config_item.body | from_yaml | to_json }} }"

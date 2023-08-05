@@ -1,7 +1,7 @@
 ---
 - name: Fetch API Session Token
   ansible.builtin.uri:
-    url: "http://{{ glpi.host }}/apirest.php/initSession?get_full_session=true"
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/initSession?get_full_session=true"
     method: GET
     return_content: true
     body: ""
