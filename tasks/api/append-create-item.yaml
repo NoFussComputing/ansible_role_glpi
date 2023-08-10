@@ -1,0 +1,73 @@
+---
+
+- name: Show item
+  ansible.builtin.debug:
+    msg: "{{ item }}"
+
+- name: Create item_body
+  ansible.builtin.set_fact:
+    item_body: "{{ item.body }}"
+  no_log: true
+
+
+- name: Search for item IDs
+  ansible.builtin.include_tasks:
+    file: api/search.yaml
+
+
+- name: Show Body
+  ansible.builtin.debug:
+    msg: "{{ item_body }}"
+  when: item_body is defined
+
+
+- name: Create Item
+  ansible.builtin.uri:
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/{{ item.api_path }}{% if item.sub_path is defined %}/{{ item.sub_path }}{% endif %}"
+    method: "POST"
+    return_content: true
+    body: "{\"input\": {{ item_body | from_yaml | to_json }} }"
+    status_code: [200, 201]
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Session-Token: "{{ glpi.session.valid_id }}"
+    body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
+  no_log: true
+  register: create_item
+  when: >
+    not item_body.id is defined
+
+
+- name: Update Item
+  ansible.builtin.uri:
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/{{ item.api_path }}{% if item.sub_path is defined %}/{{ item.sub_path }}{% else %}{% if item.api_path != 'Config' %}/{{ item_body.id | default('') }}{% endif %}{% endif %}"
+    method: "PATCH"
+    return_content: true
+    body: "{\"input\": {{ item_body | from_yaml | to_json }} }"
+    status_code: [200, 201]
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Session-Token: "{{ glpi.session.valid_id }}"
+    body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
+  no_log: true
+  register: update_item
+  when: item_body.id is defined
+
+
+- name: Fail on no action
+  ansible.builtin.fail:
+    msg: No action carried out, stop.
+  when: >
+    update_item.skipped | default(false) | bool
+      and
+    create_item.skipped | default(false) | bool
+
+
+- name: Clear temp vars
+  ansible.builtin.set_fact:
+    item_body: {}
+    create_item: {}
+    update_item: {}
+  no_log: true

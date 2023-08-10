@@ -1,0 +1,111 @@
+---
+- name: Clear  Any downloaded files
+  ansible.builtin.file:
+    name: "/tmp/ansible"
+    state: absent
+  #loop: "{{ glpi_plugins }}"
+
+- name: Clear  Any downloaded files
+  ansible.builtin.file:
+    name: "/tmp/ansible"
+    state: directory
+  #loop: "{{ glpi_plugins }}"
+
+# - name: Download Plugins
+#   ansible.builtin.get_url:
+#     url: "{{ item.url }}"
+#     dest: "/tmp/{{ item.filename }}"
+#   loop: "{{ glpi_plugins }}"
+
+# - name: Download plugins
+#   ansible.builtin.command:
+#     cmd: "bash -c echo $({{ item.url }})"
+#   loop: "{{ glpi_plugins }}"
+
+# wget https://github.com/pluginsGLPI/formcreator/releases/download/2.13.6/glpi-formcreator-2.13.6.tar.bz2 -O /tmp/plugin-form-creator.tar.bz2
+# tar -xjf /tmp/plugin-form-creator.tar.bz2 -C /var/lib/docker/volumes/glpi_glpi_plugins/_data/
+
+# wget https://github.com/glpi-project/glpi-inventory-plugin/releases/download/1.2.3/glpi-glpiinventory-1.2.3.tar.bz2 -O /tmp/glpi-glpiinventory-1.2.3.tar.bz2
+# tar -xjf /tmp/glpi-glpiinventory-1.2.3.tar.bz2 -C /var/lib/docker/volumes/glpi_glpi_plugins/_data/
+# chown www-data:www-data -R /var/lib/docker/volumes/glpi_glpi_plugins/_data/
+
+- name: Install bzip
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ apps }}"
+  vars:
+    apps:
+      - bzip2
+      - jq
+      - wget
+
+
+# - name: Example clone of a single branch
+#   ansible.builtin.git:
+#     repo: "{{ item.repo }}.git"
+#     dest: "/var/lib/docker/volumes/plugins_glpi/_data/{{ item.name }}"
+#     single_branch: true
+#     version: "{{ item.version }}"
+#     depth: 1
+#     force: true
+#   loop: "{{ plugins }}"
+#   vars:
+#     plugins:
+#       - name: actualtime
+#         repo: https://github.com/ticgal/actualtime
+#         version: 2.1.0
+
+#       - name: glpiinventory
+#         repo: https://github.com/glpi-project/glpi-inventory-plugin
+#         version: 1.2.3
+#       # for creator doesnt work
+#       # - name: formcreator
+#       #   repo: https://github.com/pluginsGLPI/formcreator
+#       #   version: 2.13.6
+
+#       - name: geninventorynumber
+#         repo: https://github.com/pluginsGLPI/geninventorynumber
+#         version: 2.8.3
+
+#       - name: releases
+#         repo: https://github.com/InfotelGLPI/releases
+#         version: 2.0.3
+
+#       - name: phpsaml
+#         repo: https://github.com/DonutsNL/phpsaml
+#         # version: e7357a49ca9f0b612bc28879a0c703cdbfc4463b
+#         version: master
+
+# - name: Download and Extract the plugins
+#   ansible.builtin.shell:
+#     cmd: |
+#       export URL=$(curl -s {{ item.url }} | jq .assets[0].browser_download_url | tr -d \");
+#       wget $URL -O /tmp/ansible/$(basename ${URL});
+#       tar -xjf /tmp/ansible/$(basename ${URL}) -C /var/lib/docker/volumes/plugins_glpi/_data/;
+#   loop: "{{ glpi_plugins }}"
+#   changed_when: false
+
+
+- name: Fix file perms
+  ansible.builtin.command:
+    cmd: chown www-data:www-data -R /var/lib/docker/volumes/plugins_glpi/_data/
+  changed_when: false
+
+# - name: Unarchive a file that needs to be downloaded (added in 2.0)
+#   ansible.builtin.unarchive:
+#     src: /tmp/{{ item.filename }}
+#     dest: /var/lib/docker/volumes/plugins_glpi/_data/
+#     remote_src: true
+#     extra_opts:
+#       - -j
+#   loop: "{{ glpi_plugins }}"
+
+- name: Clear  Any downloaded files
+  ansible.builtin.file:
+    name: "{{ item.filename }}"
+    state: absent
+  loop: "{{ glpi_plugins }}"
+
+- name: Reload logroate if required
+  ansible.builtin.meta: flush_handlers

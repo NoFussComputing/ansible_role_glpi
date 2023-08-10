@@ -1,0 +1,13 @@
+galaxy_info:
+  role_name: nfc_glpi
+  author: No Fuss Computing
+  description: |-
+    A universal role to install and configure a glpi.
+
+    This role is also desiged so that it can be included within other roles.
+
+  issue_tracker_url: https://gitlab.com/nofusscomputing/projects/ansible/nfc_glpi
+
+  license: https://gitlab.com/nofusscomputing/projects/ansible/nfc_glpi/-/blob/master/LICENSE
+
+  min_ansible_version: '1.2'

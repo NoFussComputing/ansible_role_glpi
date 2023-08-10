@@ -1,0 +1,33 @@
+INHERIT: website-template/mkdocs.yml
+
+docs_dir: 'docs'
+
+repo_name: nfc_glpi
+repo_url: https://gitlab.com/nofusscomputing/projects/ansible/nfc_glpi
+edit_uri: '/-/ide/project/nofusscomputing/projects/ansible/nfc_glpi/edit/development/-/docs/'
+
+nav:
+- Home: index.md
+
+- Articles: 
+
+  - articles/index.md
+
+- Projects: 
+
+  - projects/index.md
+
+  - Ansible Roles:
+
+    - GLPI:
+
+      - projects/nfc_glpi/index.md
+
+      - projects/nfc_glpi/config_from_code.md
+
+- Operations: 
+
+  - operations/index.md
+
+- Contact Us: contact.md
+

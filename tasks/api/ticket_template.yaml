@@ -1,0 +1,103 @@
+---
+
+- name: Template item
+  ansible.builtin.set_fact:
+    template_item: "{{ item }}"
+
+
+- name: Append/Create TicketTemplate
+  ansible.builtin.include_tasks:
+    file: api/append-create-item.yaml
+  when: item.api_path == 'TicketTemplate'
+  vars:
+    item:
+      api_path: TicketTemplate
+      entities_id: "{{ template_item.entities_id }}"
+      body: "{{ template_item.body }}"
+
+
+- name: Search tickettemplates_id
+  ansible.builtin.include_tasks:
+    file: api/search/tickettemplates_id.yaml
+  vars:
+    item:
+      tickettemplates_id: "{{ template_item.body.name }}"
+
+
+- name: Append/Create Ticket Template Mandatory Fields
+  ansible.builtin.include_tasks:
+    file: api/append-create-item.yaml
+  when: >
+    template_item._TicketTemplateMandatoryField is defined
+      and
+    template_item._TicketTemplateMandatoryField | length | int > 0
+  loop: "{{ template_item._TicketTemplateMandatoryField }}"
+  loop_control:
+    loop_var: sub_item
+  vars:
+    search_items:
+      - name: tickettemplates_id
+        value: "{{ tickettemplates_id }}"
+      - name: num
+        value: "{{ sub_item.num }}"
+    item:
+      api_path: TicketTemplate
+      sub_path: "{{ tickettemplates_id }}/TicketTemplateMandatoryField"
+      body:
+        num: "{{ sub_item.num }}"
+        tickettemplates_id: "{{ tickettemplates_id | int }}"
+
+
+- name: Append/Create Ticket Template Predefined Fields
+  ansible.builtin.include_tasks:
+    file: api/append-create-item.yaml
+  when: >
+    template_item._TicketTemplatePredefinedField is defined
+      and
+    template_item._TicketTemplatePredefinedField | length | int > 0
+  loop: "{{ template_item._TicketTemplatePredefinedField }}"
+  loop_control:
+    loop_var: sub_item
+  vars:
+    search_items:
+      - name: tickettemplates_id
+        value: "{{ tickettemplates_id }}"
+      - name: num
+        value: "{{ sub_item.num }}"
+    item:
+      api_path: TicketTemplate
+      sub_path: "{{ tickettemplates_id }}/TicketTemplatePredefinedField"
+      body:
+        num: "{{ sub_item.num | int }}"
+        tickettemplates_id: "{{ tickettemplates_id | int }}"
+        value: "{{ sub_item.value | string }}"
+
+
+- name: Append/Create Ticket Template Hidden Fields
+  ansible.builtin.include_tasks:
+    file: api/append-create-item.yaml
+  when: >
+    template_item._TicketTemplateHiddenField is defined
+      and
+    template_item._TicketTemplateHiddenField | length | int > 0
+  loop: "{{ template_item._TicketTemplateHiddenField }}"
+  loop_control:
+    loop_var: sub_item
+  vars:
+    search_items:
+      - name: tickettemplates_id
+        value: "{{ tickettemplates_id }}"
+      - name: num
+        value: "{{ sub_item.num }}"
+    item:
+      api_path: TicketTemplate
+      sub_path: "{{ tickettemplates_id }}/TicketTemplateHiddenField"
+      body:
+        num: "{{ sub_item.num | int }}"
+        tickettemplates_id: "{{ tickettemplates_id | int }}"
+
+
+- name: Clear temp vars
+  ansible.builtin.set_fact:
+    template_item: {}
+  no_log: true
