@@ -1,0 +1,14 @@
+---
+- name: End API Session
+  ansible.builtin.uri:
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/killSession"
+    method: GET
+    return_content: true
+    body: ''
+    status_code: 200
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Session-Token: "{{ glpi_session_get.json.session.valid_id }}"
+    body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
+  no_log: true

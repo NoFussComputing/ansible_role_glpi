@@ -1,0 +1,100 @@
+---
+
+- name: Fetch ID for {{ list_item.body.name }}
+  ansible.builtin.uri:
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/{{ item.api_path }}?searchText[name]={{ list_item.body.name | urlencode }}"
+    method: "GET"
+    return_content: true
+    body: ''
+    status_code: [200, 201]
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Session-Token: "{{ glpi.session.valid_id }}"
+    body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
+  no_log: true
+  register: glpi_search
+
+
+- name: Build API Body for {{ list_item.body.name }}
+  ansible.builtin.set_fact:
+    config_item:
+      api_path: "{{ list_item.api_path }}"
+      body:
+        context: "{{ list_item.body.context }}"
+        name: "{{ list_item.body.name }}"
+        value: "{{ list_item.body.value }}"
+  when: glpi_search.json | length | int == 0
+  no_log: true
+
+
+- name: Build API Body (with ID) for {{ list_item.body.name }}
+  ansible.builtin.set_fact:
+    config_item:
+      api_path: "{{ list_item.api_path }}"
+      body:
+        id: "{% for found_id in glpi_search.json %}{%if list_item.body.name == found_id.name %}{{ found_id.id }}{% endif %}{% endfor %}"
+        context: "{{ list_item.body.context }}"
+        name: "{{ list_item.body.name }}"
+        value: "{{ list_item.body.value }}"
+  when: glpi_search.json | length | int > 0
+  no_log: true
+
+
+- name: Remove Empty ID from body
+  ansible.builtin.set_fact:
+    config_item:
+      api_path: "{{ list_item.api_path }}"
+      body:
+        context: "{{ list_item.body.context }}"
+        name: "{{ list_item.body.name }}"
+        value: "{{ list_item.body.value }}"
+  when: config_item.body.id | default('0') == ''
+  no_log: true
+
+
+- name: "Item [{{ config_item.body.id + ']: ' + config_item.body.name }}"
+  ansible.builtin.debug:
+    msg: "{{ config_item }}"
+  when: config_item is defined
+
+
+# ToDo: figure out why cant create item?????
+
+# - name: Create Config Item
+#   ansible.builtin.uri:
+#     url: "http://{{ glpi.host }}/apirest.php/{{ config_item.api_path }}"
+#     method: "POST"
+#     return_content: true
+#     body: "{\"input\": {{ config_item.body | from_yaml | to_json }} }"
+#     status_code: [200, 201]
+#     headers:
+#       App-Token: "{{ glpi.app_token }}"
+#       Session-Token: "{{ glpi.session.valid_id }}"
+#     body_format: json
+#   # no_log: true
+#   when: not config_item.body.id is defined
+
+
+- name: Update Config Item
+  ansible.builtin.uri:
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/{{ item.api_path }}/{{ config_item.body.id }}"
+    method: "PATCH"
+    return_content: true
+    body: "{\"input\": {{ config_item.body | from_yaml | to_json }} }"
+    status_code: [200, 201]
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Session-Token: "{{ glpi.session.valid_id }}"
+    body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
+  no_log: true
+  when: config_item.body.id is defined
+
+
+- name: Clear temp vars
+  ansible.builtin.set_fact:
+    config_item: {}
+    glpi_search: {}
+    list_item: {}
+  no_log: true

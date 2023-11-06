@@ -1,0 +1,54 @@
+---
+- name: Fetch tickettemplates_id
+  ansible.builtin.uri:
+    url: "{{ http_protocol | default('https') | string }}://{{ glpi.host }}/apirest.php/TicketTemplate?searchText[name]={{ item.tickettemplates_id | urlencode }}"
+    method: "GET"
+    return_content: true
+    body: ''
+    status_code: [200, 201]
+    headers:
+      App-Token: "{{ glpi.app_token }}"
+      Session-Token: "{{ glpi.session.valid_id }}"
+    body_format: json
+    validate_certs: "{{ glpi.validate_certs | default(true) | bool }}"
+  register: glpi_search
+  no_log: true
+
+
+- name: Iterate over results for ID search
+  ansible.builtin.shell:
+    cmd: |
+      cat <<EOF
+      {
+        {%- for json in glpi_search.json -%}
+
+          {%- if json.name | string  == item.tickettemplates_id | string -%}
+          "tickettemplates_id": {{ json.id | int }}
+          {%- endif -%}
+
+        {%- endfor -%}
+      }
+      EOF
+  args:
+    executable: bash
+  register: itarate_id
+  changed_when: false
+  no_log: true
+  when: >
+    glpi_search.json | length | int > 0
+
+
+- name: Set tickettemplates_id
+  ansible.builtin.set_fact:
+    new_data: "{{ itarate_id.stdout | from_yaml }}"
+  when: itarate_id.stdout | default({}) | length | int > 0
+
+
+- name: Append tickettemplates_id
+  ansible.builtin.set_fact:
+    item_body: "{{ item_body | ansible.builtin.combine(new_data | default({})) }}"
+    tickettemplates_id: "{{ new_data.tickettemplates_id | default(omit) | int }}"
+    glpi_search: {}
+    itarate_id: {}
+    new_data: {}
+  no_log: true
